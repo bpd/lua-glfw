@@ -1,7 +1,7 @@
 
-Lua bindings for glfw, glew, and OpenGL 3.3
-(glew and OpenGL 3.3 still in progress, glfw complete)
+Lua 5.2.1 bindings for GLFW 2.7.6, GLEW 1.7.0, and OpenGL 3.3
+(GLEW and OpenGL 3.3 still in progress, GLFW complete)
 
-glfw bindings, updated to Lua 5.2.1, originally from:
+GLFW bindings based on:
 http://src.gnu-darwin.org/ports/graphics/glfw/work/glfw-2.5/support/lua/
 

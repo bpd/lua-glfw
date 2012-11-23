@@ -37,16 +37,16 @@ win64: CFLAGS += -Wl,-static
 win64: EXEC_EXT = exe
 win64: executables
 
-win64-clean:
-	rm a.exe
+win64-clean: clean-objs
+	rm -f a.exe
 
 x11: LFLAGS = -L./lib/x11  -L/usr/lib
 x11: LIBS += ./lib/x11/libglfw.a -lGLU -lGL
 x11: EXEC_EXT = out
 x11: executables
 
-x11-clean:
-	rm a.out
+x11-clean: clean-objs
+	rm -f a.out
 
 executables: main
   
@@ -67,4 +67,4 @@ shader.o: src/shader.c
 	$(CC) -c $(CFLAGS) $(INCLUDES)  src/shader.c -o shader.o
  
 clean-objs:
-	rm glm.o shader.o glew.o
+	rm -f glm.o shader.o glew.o

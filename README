@@ -5,3 +5,9 @@ Lua 5.2.1 bindings for GLFW 2.7.6, GLEW 1.7.0, and OpenGL 3.3
 GLFW bindings based on:
 http://src.gnu-darwin.org/ports/graphics/glfw/work/glfw-2.5/support/lua/
 
+All OpenGL 3.3 deprecated APIs have been removed from GLEW, based on:
+http://www.opengl.org/registry/api/gl.spec
+
+
+Another Lua-based OpenGL/glfw project:
+https://github.com/henkboom/dokidoki

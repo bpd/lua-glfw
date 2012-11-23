@@ -21,6 +21,7 @@ glfw.OpenWindowHint( glfw.OPENGL_PROFILE, glfw.OPENGL_CORE_PROFILE );
 glfw.OpenWindowHint( glfw.OPENGL_FORWARD_COMPAT, glfw.GL_TRUE );
 
 opened = glfw.OpenWindow( 1024, 768, 0, 0, 0, 0, 32, 0, glfw.WINDOW )
+assert( not(opened == 0), "open window failed")
 
 gl.GlewInit()
 
@@ -59,50 +60,19 @@ glfw.SetCharCallback( function(key,action)
   print(key,action)
 end )
 
-if opened == 0 then
-  print("open window failed")
-end
-
 gl.ClearColor( 0, 0, 0.3, 0 )
---[[
-local metaarray = getmetatable(gl.FloatArray.new(1))
---metaarray.size = gl.FloatArray.size
-metaarray.__index = function(t, k)
-  if type(k) == "number" then
-    -- if the key being accessed is a number, assume an array get operation
-    return gl.FloatArray.get(t, k)
-  else
-    return rawget(metaarray,k)
-  end
-end
-metaarray.__newindex = gl.FloatArray.set
-]]--
 
 vertices = gl.FloatArray.new( 12 )
-print(vertices)
-print(gl.FloatArray.size(vertices))
---print(vertices:size())
+assert( gl.FloatArray.size(vertices) == 12, "vertices.size" )
 vertices[1] = 7
-print('set')
---vertices:set(1, 7 )
-print(vertices[1])
---print(vertices:get(1))
+assert( vertices[1] == 7, "vertices[1]" )
 
--- TODO add array bulk loader
-vertices[1] = 0
-vertices[2] = 0
-vertices[3] = 0
-vertices[4] = -0.5
-vertices[5] = 0.25
-vertices[6] = -0.5
-vertices[7] = 0
-vertices[8] = 0
-vertices[9] = 0
-vertices[10] = 0.5
-vertices[11] = 0.25
-vertices[12] = 0.5
-
-print("vertex count", gl.FloatArray.size(vertices))
+vecs = {
+  0,   0,     0,
+ -0.5, 0.25, -0.5,
+  0,   0,     0,
+  0.5, 0.25,  0.5
+}
 
 -- bind VBO and VAA
 vertexArrayID = gl.GenVertexArray()
@@ -110,7 +80,8 @@ gl.BindVertexArray( vertexArrayID )
 
 vertexbufferID = gl.GenBuffer()
 gl.BindBuffer( gl.ARRAY_BUFFER, vertexbufferID )
-gl.BufferData( gl.ARRAY_BUFFER, gl.FloatArray.size(vertices)*4, vertices, gl.STATIC_DRAW )
+--gl.BufferData( gl.ARRAY_BUFFER, gl.FloatArray.size(vertices)*4, vertices, gl.STATIC_DRAW )
+gl.BufferData( gl.ARRAY_BUFFER, #vecs, vecs, gl.STATIC_DRAW )
 gl.VertexAttribPointer( 0, 3, gl.FLOAT, gl.FALSE, 0, 0 )
 
 gl.BindBuffer( gl.ARRAY_BUFFER, 0 )
@@ -158,7 +129,8 @@ while running do
   
   gl.BindVertexArray( vertexArrayID )
   gl.EnableVertexAttribArray( 0 )
-  gl.DrawArrays( gl.LINES, 0, gl.FloatArray.size(vertices)/3 )
+  -- each vector has three components, so the element count is #vecs/3
+  gl.DrawArrays( gl.LINES, 0, (#vecs)/3 )
   gl.DisableVertexAttribArray( 0 )
   
   glfw.SwapBuffers()
@@ -176,5 +148,10 @@ while running do
   
   running = opened and (not esc_pressed)
 end
+
+gl.DeleteVertexArray( vertexArrayID )
+gl.DeleteBuffer( vertexbufferID )
+
+gl.DeleteProgram( programID )
 
 glfw.Terminate()

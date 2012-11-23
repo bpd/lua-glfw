@@ -183,7 +183,15 @@ static int gl_GenVertexArray(lua_State *L)
   return 1;
 }
 
-/*BindVertexArray () -> none*/
+/*DeleteVertexArray (arrayID) -> none*/
+static int gl_DeleteVertexArray(lua_State *L)
+{
+  GLuint arrayID = luaL_checkint(L,1);
+  glDeleteBuffers(1, &arrayID);
+  return 0;
+}
+
+/*BindVertexArray (arrayID) -> none*/
 static int gl_BindVertexArray(lua_State *L)
 {
   glBindVertexArray( luaL_checkint(L,1) );
@@ -199,6 +207,14 @@ static int gl_GenBuffer(lua_State *L)
   return 1;
 }
 
+/*DeleteBuffer (bufferID) -> none*/
+static int gl_DeleteBuffer(lua_State *L)
+{
+  GLuint bufferID = luaL_checkint(L, 1);
+  glDeleteBuffers(1, &bufferID);
+  return 0;
+}
+
 /*BindBuffer (type, bufferID) -> none*/
 static int gl_BindBuffer(lua_State *L)
 {
@@ -210,11 +226,40 @@ static int gl_BindBuffer(lua_State *L)
 static int gl_BufferData(lua_State *L)
 {
   int size = luaL_checkint(L, 2);
-  luaL_checktype( L, 3 , LUA_TUSERDATA );
-  FloatArray *data = (FloatArray*) lua_touserdata(L, 3);
   
-  glBufferData( luaL_checkint(L, 1), size,
-                data->values, luaL_checkint(L, 4) );
+  int type = lua_type(L, 3);
+  if( type == LUA_TUSERDATA )
+  {
+    // use a FloatArray as the buffer data input
+    FloatArray *data = (FloatArray*) lua_touserdata(L, 3);
+    
+    glBufferData( luaL_checkint(L, 1), size,
+                  data->values, luaL_checkint(L, 4) );
+  }
+  else if( type == LUA_TTABLE )
+  {
+    // use a lua table as the buffer data input
+    
+    // read the table (as an array) values by index
+    float values[size];
+    
+    int i;
+    for( i=1; i<=size; i++ )
+    {
+      lua_rawgeti(L, 3, i);
+      values[i-1] = lua_tonumber(L, -1);
+      lua_pop(L, 1);
+    }
+    
+    glBufferData( luaL_checkint(L, 1), size*sizeof(lua_Number),
+                  values, luaL_checkint(L, 4) );
+  }
+  else
+  {
+    lua_settop( L, 0 );
+    lua_pushstring( L, "Unknown buffer data type" );
+    lua_error( L );
+  }
   return 0;
 }
 
@@ -261,6 +306,13 @@ static int gl_ColorMask(lua_State *L)
 static int gl_UseProgram(lua_State *L)
 {
   glUseProgram( luaL_checkint(L, 1) );
+  return 0;
+}
+
+/*DeleteProgram (programID) -> none*/
+static int gl_DeleteProgram(lua_State *L)
+{
+  glDeleteProgram( luaL_checkint(L, 1) );
   return 0;
 }
 
@@ -328,9 +380,11 @@ static const luaL_Reg gllib[] = {
     
     // VA, VBO management
     { "GenVertexArray", gl_GenVertexArray },
+    { "DeleteVertexArray", gl_DeleteVertexArray },
     { "BindVertexArray", gl_BindVertexArray },
     
     { "GenBuffer", gl_GenBuffer },
+    { "DeleteBuffer", gl_DeleteBuffer },
     { "BindBuffer", gl_BindBuffer },
     { "BufferData", gl_BufferData },
     { "VertexAttribPointer", gl_VertexAttribPointer },
@@ -340,6 +394,7 @@ static const luaL_Reg gllib[] = {
     
     // shader
     { "UseProgram", gl_UseProgram },
+    { "DeleteProgram", gl_DeleteProgram },
     
     // helper functions
     { "LoadShader", gl_LoadShader },

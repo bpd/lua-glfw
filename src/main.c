@@ -194,6 +194,7 @@ int main( int argc, char* argv[] )
 #include "lualib.h"
 
 #include "luaglfw.h"
+#include "luagl.h"
 
 static int say_hello( lua_State *L )
 {
@@ -218,6 +219,7 @@ int main( int argc, char* argv[] )
   
   // open libraries
   luaopen_glfw( L );
+  luaopen_gl( L );
   
   // 
   lua_pushcfunction(L, say_hello);

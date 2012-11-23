@@ -62,9 +62,15 @@ if opened == 0 then
   print("open window failed")
 end
 
+gl.ClearColor( 0, 0, 0.3, 0 )
+
 running = true
 while running do
 
+  gl.Enable( gl.DEPTH_TEST )
+  gl.DepthFunc( gl.LESS )
+		
+  gl.Clear( bit32.bor(gl.COLOR_BUFFER_BIT, gl.DEPTH_BUFFER_BIT) )
   
   
   -- Check if ESC key was pressed or window was closed

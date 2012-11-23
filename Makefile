@@ -21,8 +21,7 @@ DEADCODESTRIP =  \
 								
 CFLAGS = -O3 -m64 -Wall -std=c99 -pedantic \
          -DGLEW_STATIC -DGLEW_NO_GLU \
-         -DGLFW_NO_GLU \
-         -DLUA_COMPAT_MODULE
+         -DGLFW_NO_GLU 
 
 LIBS = ./lib/liblua.a
 
@@ -50,14 +49,17 @@ x11-clean: clean-objs
 
 executables: main
   
-main: glew.o shader.o luaglfw.o src/main.c
+main: glew.o shader.o luaglfw.o luagl.o src/main.c
 	$(CC) $(DEADCODESTRIP) $(CFLAGS) $(INCLUDES) \
-  glew.o shader.o luaglfw.o src/main.c \
+  glew.o shader.o luaglfw.o luagl.o src/main.c \
   $(LFLAGS) $(LIBS) \
   -o main.$(EXEC_EXT) 
 
 luaglfw.o: src/luaglfw.c src/luaglfw.h
 	$(CC) -c $(CFLAGS) $(INCLUDES) src/luaglfw.c -o luaglfw.o
+
+luagl.o: src/luagl.c src/luagl.h
+	$(CC) -c $(CFLAGS) $(INCLUDES) src/luagl.c -o luagl.o
 
 glew.o: src/glew.c
 	$(CC) -c $(CFLAGS) $(INCLUDES) src/glew.c -o glew.o \
@@ -67,4 +69,4 @@ shader.o: src/shader.c
 	$(CC) -c $(CFLAGS) $(INCLUDES)  src/shader.c -o shader.o
  
 clean-objs:
-	rm -f glm.o shader.o glew.o
+	rm -f glm.o shader.o glew.o luaglfw.o luagl.o

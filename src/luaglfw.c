@@ -349,11 +349,13 @@ void GLFWCALL luaglfw_charfun( int key, int action )
 
 static int glfw_Init( lua_State *L )
 {
-    int res;
-    lua_settop( L, 0 );
-    res = glfwInit();
-    lua_pushnumber( L, (lua_Number)res );
-    return 1;
+    if( !glfwInit() )
+    {
+      lua_settop( L, 0 );
+      lua_pushstring( L, "Unable to initialize GLFW" );
+      lua_error( L );
+    }
+    return 0;
 }
 
 static int glfw_Terminate( lua_State *L )

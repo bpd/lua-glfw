@@ -1,4 +1,6 @@
 
+#include <math.h>
+
 #include <lauxlib.h>
 #include <GL/glew.h>
 #include "luagl.h"
@@ -380,7 +382,19 @@ static struct lua_constant gl_constants[] =
     { "COLOR_BUFFER_BIT", GL_COLOR_BUFFER_BIT },
     { "DEPTH_BUFFER_BIT", GL_DEPTH_BUFFER_BIT },
     
+    { "POINTS", GL_POINTS },
+    { "LINE_STRIP", GL_LINE_STRIP },
+    { "LINE_LOOP", GL_LINE_LOOP },
     { "LINES", GL_LINES },
+    { "LINE_STRIP_ADJACENCY", GL_LINE_STRIP_ADJACENCY },
+    { "LINES_ADJACENCY", GL_LINES_ADJACENCY },
+    { "TRIANGLE_STRIP", GL_TRIANGLE_STRIP },
+    { "TRIANGLE_FAN", GL_TRIANGLE_FAN },
+    { "TRIANGLES", GL_TRIANGLES },
+    { "TRIANGLE_STRIP_ADJACENCY", GL_TRIANGLE_STRIP_ADJACENCY },
+    { "TRIANGLES_ADJACENCY", GL_TRIANGLES_ADJACENCY },
+    { "PATCHES", GL_PATCHES },
+    
     
     // VBO constants
     { "ARRAY_BUFFER", GL_ARRAY_BUFFER },

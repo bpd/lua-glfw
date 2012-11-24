@@ -1,55 +1,244 @@
+--[[  Vector Functions  ]]--
 
-function glmIdentity()
-  return {
+Vector = { x=0, y=0, z=0 }
+
+Vector._meta = {
+  __add = function(u,v)
+    if type(v) == "table" then
+      return Vector{ u.x+v.x, u.y+v.y, u.z+v.z }
+    elseif type(v) == "number" then
+      return Vector{ u.x+v, u.y+v, u.z+v }
+    end
+  end,
+  __sub = function(u,v)
+    if type(v) == "table" then
+      return Vector{ u.x-v.x, u.y-v.y, u.z-v.z }
+    elseif type(v) == "number" then
+      return Vector{ u.x-v, u.y-v, u.z-v }
+    end
+  end,
+  __mul = function(u,v)
+    if type(v) == "table" then
+      return Vector{ u.x*v.x, u.y*v.y, u.z*v.z }
+    elseif type(v) == "number" then
+      return Vector{ u.x*v, u.y*v, u.z*v }
+    end
+  end,
+   __div = function(u,v)
+    assert(type(v) == "number", "Vectors can only be divided by scalars")
+    return Vector{ u.x/v, u.y/v, u.z/v }
+  end,
+  __eq = function(u,v)
+    assert( type(u) == "table" and type(v) == "table", 
+            "Vectors can only be equal to other vectors" )
+    return u.x==v.x and u.y==v.y and u.z==v.z
+  end,
+  __index = function(t, key)
+    if key == "x" then
+      return t[1]
+    elseif key == "y" then
+      return t[2]
+    elseif key == "z" then
+      return t[3]
+    elseif key == "a" then
+      return t[4]
+    else
+      return Vector[key]
+    end
+  end
+}
+
+setmetatable(Vector, {
+  __call = function(self, o)
+    o = o or {}
+    setmetatable(o, Vector._meta)
+    return o
+  end
+})
+
+function Vector.dot(u, v)
+  return (u.x * v.x) + (u.y * v.y) + (u.z * v.z)
+end
+
+assert( Vector{2,3,4}:dot( Vector{4,5,6} ) == 47, "Vector.dot" )
+
+function Vector.cross(u, v)
+  return Vector{
+       (u.y * v.z) - (v.y * u.z),
+		-( (u.x * v.z) - (v.x * u.z) ),
+		   (u.x * v.y) - (v.x * u.y)
+  }
+end
+
+assert( Vector{2,3,4}:cross(Vector{4,5,6}) == Vector{-2,4,-2}, "Vector.cross" )
+
+function Vector.magnitude(u)
+  return math.sqrt( u:dot(u) )
+end
+
+assert( Vector{2,3,4}:magnitude() == math.sqrt(29), "Vector.magnitude" )
+
+function Vector.normalize(u)
+	return u / u:magnitude()
+end
+
+assert( Vector{2,3,4}:normalize() == Vector{ 2/math.sqrt(29), 3/math.sqrt(29), 4/math.sqrt(29) }, "Vector.normalize" )
+
+function Vector.print(u)
+	print(u.x, u.y, u.z)
+end
+
+-- Vector tests
+assert( Vector{1,2,3} + Vector{3,4,5} == Vector{4,6,8}, "Vector.__add" )
+assert( Vector{1,2,3} + 3 == Vector{4,5,6}, "Vector.__add scalar" )
+assert( Vector{1,2,3} * Vector{3,4,5} == Vector{3,8,15}, "Vector.__mul" )
+assert( Vector{1,2,3} * 2 == Vector{2,4,6}, "Vector.__mul scalar" )
+
+
+--[[  Matrix Functions  ]]--
+
+Matrix = {}
+
+Matrix._meta = {
+  __mul = function(m1,m2)
+  
+    if type(m1) == "table" and type(m2) == "table" 
+       and getmetatable(m1) == Matrix._meta then
+    
+      if getmetatable(m2) == Matrix._meta then
+        return Matrix({
+          (m1[1] * m2[1]) + (m1[2] * m2[5]) + (m1[3] * m2[9]) + (m1[4] * m2[13]),
+          (m1[1] * m2[2]) + (m1[2] * m2[6]) + (m1[3] * m2[10]) + (m1[4] * m2[14]),
+          (m1[1] * m2[3]) + (m1[2] * m2[7]) + (m1[3] * m2[11]) + (m1[4] * m2[15]),
+          (m1[1] * m2[4]) + (m1[2] * m2[8]) + (m1[3] * m2[12]) + (m1[4] * m2[16]),
+
+          (m1[5] * m2[1]) + (m1[6] * m2[5]) + (m1[7] * m2[9]) + (m1[8] * m2[13]),
+          (m1[5] * m2[2]) + (m1[6] * m2[6]) + (m1[7] * m2[10]) + (m1[8] * m2[14]),
+          (m1[5] * m2[3]) + (m1[6] * m2[7]) + (m1[7] * m2[11]) + (m1[8] * m2[15]),
+          (m1[5] * m2[4]) + (m1[6] * m2[8]) + (m1[7] * m2[12]) + (m1[8] * m2[16]),
+
+          (m1[9] * m2[1]) + (m1[10] * m2[5]) + (m1[11] * m2[9]) + (m1[12] * m2[13]),
+          (m1[9] * m2[2]) + (m1[10] * m2[6]) + (m1[11] * m2[10]) + (m1[12] * m2[14]),
+          (m1[9] * m2[3]) + (m1[10] * m2[7]) + (m1[11] * m2[11]) + (m1[12] * m2[15]),
+          (m1[9] * m2[4]) + (m1[10] * m2[8]) + (m1[11] * m2[12]) + (m1[12] * m2[16]),
+
+          (m1[13] * m2[1]) + (m1[14] * m2[5]) + (m1[15] * m2[9]) + (m1[16] * m2[13]),
+          (m1[13] * m2[2]) + (m1[14] * m2[6]) + (m1[15] * m2[10]) + (m1[16] * m2[14]),
+          (m1[13] * m2[3]) + (m1[14] * m2[7]) + (m1[15] * m2[11]) + (m1[16] * m2[15]),
+          (m1[13] * m2[4]) + (m1[14] * m2[8]) + (m1[15] * m2[12]) + (m1[16] * m2[16])
+        })
+      elseif getmetatable(m2) == Vector._meta then
+        local v = m2
+        local m = m1
+        local a = v.a or 1  -- expand the rvalue to a vec4 if necessary
+        return Vector{
+          (v.x*m[1]) + (v.y*m[5]) + (v.z*m[9])  + (a*m[13]),
+          (v.x*m[2]) + (v.y*m[6]) + (v.z*m[10]) + (a*m[14]),
+          (v.x*m[3]) + (v.y*m[7]) + (v.z*m[11]) + (a*m[15]),
+          (v.x*m[4]) + (v.y*m[8]) + (v.z*m[12]) + (a*m[16])
+        }
+      end
+    end
+    assert( false, "Expected m1=Matrix, m2=Matrix|Vector" )
+  end,
+  __index = function(t, k)
+    return Matrix[k]
+  end
+}
+
+setmetatable(Matrix, {
+  __call = function(self, o)
+    o = o or Matrix.identity()
+    setmetatable(o, Matrix._meta)
+    return o
+  end
+})
+
+
+function Matrix.identity()
+  return Matrix({
     1, 0, 0, 0,
     0, 1, 0, 0,
     0, 0, 1, 0,
-    0, 0, 0, 1 }
+    0, 0, 0, 1 })
 end
 
-function glmRotateX( degree )
-  return {
-    1, 0,                0,                 0,
-    0, math.cos(degree), -math.sin(degree), 0,
-    0, math.sin(degree), math.cos(degree),  0,
-    0, 0,                0,                 1 }
+function Matrix.rotateX( radians )
+  return Matrix({
+    1, 0,                 0,                  0,
+    0, math.cos(radians), -math.sin(radians), 0,
+    0, math.sin(radians), math.cos(radians),  0,
+    0, 0,                 0,                  1 })
 end
 
-function glmRotateY( degree )
-  return {
-		math.cos(degree),  0,   math.sin(degree),  0,
-    0,                 1,   0,                 0,
-    -math.sin(degree), 0,   math.cos(degree),  0,
-    0,                 0,   0,                 1 }
+function Matrix.rotateY( radians )
+  return Matrix({
+    math.cos(radians),  0,   math.sin(radians),  0,
+    0,                  1,   0,                  0,
+    -math.sin(radians), 0,   math.cos(radians),  0,
+    0,                  0,   0,                  1 })
 end
-    
 
-function glmMulMatrix( m1, m2 )
-  dst = {}
-  dst[1] = (m1[1] * m2[1]) + (m1[2] * m2[5]) + (m1[3] * m2[9]) + (m1[4] * m2[13])
-	dst[2] = (m1[1] * m2[2]) + (m1[2] * m2[6]) + (m1[3] * m2[10]) + (m1[4] * m2[14])
-	dst[3] = (m1[1] * m2[3]) + (m1[2] * m2[7]) + (m1[3] * m2[11]) + (m1[4] * m2[15])
-	dst[4] = (m1[1] * m2[4]) + (m1[2] * m2[8]) + (m1[3] * m2[12]) + (m1[4] * m2[16])
-	
-	dst[5] = (m1[5] * m2[1]) + (m1[6] * m2[5]) + (m1[7] * m2[9]) + (m1[8] * m2[13])
-	dst[6] = (m1[5] * m2[2]) + (m1[6] * m2[6]) + (m1[7] * m2[10]) + (m1[8] * m2[14])
-	dst[7] = (m1[5] * m2[3]) + (m1[6] * m2[7]) + (m1[7] * m2[11]) + (m1[8] * m2[15])
-	dst[8] = (m1[5] * m2[4]) + (m1[6] * m2[8]) + (m1[7] * m2[12]) + (m1[8] * m2[16])
-	
-	dst[9] = (m1[9] * m2[1]) + (m1[10] * m2[5]) + (m1[11] * m2[9]) + (m1[12] * m2[13])
-	dst[10] = (m1[9] * m2[2]) + (m1[10] * m2[6]) + (m1[11] * m2[10]) + (m1[12] * m2[14])
-	dst[11] = (m1[9] * m2[3]) + (m1[10] * m2[7]) + (m1[11] * m2[11]) + (m1[12] * m2[15])
-	dst[12] = (m1[9] * m2[4]) + (m1[10] * m2[8]) + (m1[11] * m2[12]) + (m1[12] * m2[16])
-	
-	dst[13] = (m1[13] * m2[1]) + (m1[14] * m2[5]) + (m1[15] * m2[9]) + (m1[16] * m2[13])
-	dst[14] = (m1[13] * m2[2]) + (m1[14] * m2[6]) + (m1[15] * m2[10]) + (m1[16] * m2[14])
-	dst[15] = (m1[13] * m2[3]) + (m1[14] * m2[7]) + (m1[15] * m2[11]) + (m1[16] * m2[15])
-	dst[16] = (m1[13] * m2[4]) + (m1[14] * m2[8]) + (m1[15] * m2[12]) + (m1[16] * m2[16])
+function Matrix.translate( x, y, z )
+  return Matrix({
+    1,	0,	0,	x,
+		0,	1,	0,	y,
+		0,	0,	1,	z,
+		0,	0,	0,	1 })
+end
 
-  return dst
+function Matrix.scale( x, y, z )
+  return Matrix({
+    x,	0,	0,	0,
+		0,	y,	0,	0,
+		0,	0,	z,	0,
+		0,	0,	0,	1 })
+end
+
+function Matrix.print( m )
+  print( m[1], m[2], m[3], m[4] )
+  print( m[5], m[6], m[7], m[8] )
+  print( m[9], m[10], m[11], m[12] )
+  print( m[13], m[14], m[15], m[16] )
 end
 
 
+
+--[[  OpenGL Helper Functions  ]]--
+glu = glu or {}
+
+function glu.LookAt( eye, center, up )
+  local forward = (center - eye):normalize()
+
+  local side = forward:cross(up):normalize()
+  local up = side:cross(forward)
+  
+  local m = Matrix({
+    side.x,	up.x,	-forward.x,	0,
+		side.y,	up.y,	-forward.y,	0,
+		side.z,	up.z,	-forward.z,	0,
+		0,		  0,		0,		      1
+  })
+  
+  return m * Matrix.translate( -eye.x, -eye.y, -eye.z )
+end
+
+glu.PI_OVER_360 = 3.14159265358979323846264338327950288 / 360
+
+function glu.Perspective( fov, aspect, zNear, zFar )
+  local h = 1 / math.tan( fov * glu.PI_OVER_360 )
+  local neg_depth = zNear - zFar
+  
+  return Matrix({
+    h/aspect,	0,	0,														0,
+		0,				h,	0,														0,
+		0,				0,	(zFar + zNear)/neg_depth,			(2*(zNear*zFar))/neg_depth,
+		0,				0,	-1,                           0
+  })
+end
+
+
+--[[  Begin Program  ]]--
 
 glfw.Init()
 
@@ -92,23 +281,23 @@ glfw.SetWindowRefreshCallback( function()
 end )
 
 glfw.SetMouseButtonCallback( function(button,action)
-  print(button,action)
+  --print(button,action)
 end )
 
 glfw.SetMousePosCallback( function(x,y)
-  print(x,y)
+  --print(x,y)
 end )
 
 glfw.SetMouseWheelCallback( function(pos)
-  print(pos)
+  --print(pos)
 end )
 
 glfw.SetKeyCallback( function(key,action)
-  print(key,action)
+  --print(key,action)
 end )
 
 glfw.SetCharCallback( function(key,action)
-  print(key,action)
+  --print(key,action)
 end )
 
 gl.ClearColor( 0, 0, 0.3, 0 )
@@ -117,12 +306,32 @@ vertices = gl.FloatArray.new( 12 )
 assert( gl.FloatArray.size(vertices) == 12, "vertices.size" )
 vertices[1] = 7
 assert( vertices[1] == 7, "vertices[1]" )
-
+--[[
 vecs = {
   0,   0,     0,
  -0.5, 0.25, -0.5,
   0,   0,     0,
   0.5, 0.25,  0.5
+}
+]]--
+vecs = {
+  -- side
+  -4,  2,   2,
+  -4, -2,   2,
+  -4, -2,  -2,
+  
+  -4,  2,   2,
+  -4, -2,  -2,
+  -4,  2,  -2,
+  
+  -- bottom
+  -4,  -2,   2,
+   2,  -2,   2,
+  -4,  -2,  -2,
+  
+   2,  -2,   2,
+  -4,  -2,  -2,
+   2,  -2,  -2
 }
 
 -- bind VBO and VAA
@@ -170,21 +379,50 @@ print("programID: ", programID)
 mvpID = gl.GetUniformLocation(programID, "MVP")
 print("mvpID: ", mvpID)
 
-mvp = glmIdentity()
+eye = Vector{0,0,20}
+center = Vector{0,0,0}
+up = Vector{0,1,0}
 
+model = Matrix()
+
+view = glu.LookAt( eye, center, up )
+
+projection = glu.Perspective( 45, 4/3, 0.1, 100 )
+
+rotateAngle = 0
+
+function rotateViewY( angle )
+  local mRotation = Matrix.rotateY(-angle)
+  local vDir = center - eye
+  local vNewView = mRotation * vDir
+  center = vNewView + eye
+  
+  view = glu.LookAt( eye, center, up )
+end
+
+function move( distance )
+  local vDir = center - eye
+  vDir = vDir * distance
+  eye = eye + vDir
+  center = center + vDir
+
+  view = glu.LookAt( eye, center, up )
+end
 
 function processEvents()
 
   if glfw.GetKey( glfw.KEY_LEFT ) == glfw.PRESS then
-    mvp = glmMulMatrix( mvp, glmRotateY( -0.05 ) )
-  elseif glfw.GetKey( glfw.KEY_RIGHT ) == glfw.PRESS then
-    mvp = glmMulMatrix( mvp, glmRotateY( 0.05 ) )
+    rotateViewY(-0.05)
+  end
+  if glfw.GetKey( glfw.KEY_RIGHT ) == glfw.PRESS then
+    rotateViewY(0.05)
   end
   
   if glfw.GetKey( glfw.KEY_UP ) == glfw.PRESS then
-    mvp = glmMulMatrix( mvp, glmRotateX( -0.05 ) )
-  elseif glfw.GetKey( glfw.KEY_DOWN ) == glfw.PRESS then
-    mvp = glmMulMatrix( mvp, glmRotateX( 0.05 ) )
+    move( 0.05 )
+  end
+  if glfw.GetKey( glfw.KEY_DOWN ) == glfw.PRESS then
+    move( -0.05 )
   end
 
 end
@@ -199,12 +437,14 @@ function render()
   
   gl.UseProgram( programID )
   
-  gl.UniformMatrix4f( mvpID, false, mvp )
+  mvp = projection * view * model
+  
+  gl.UniformMatrix4f( mvpID, true, mvp )
   
   gl.BindVertexArray( vertexArrayID )
   gl.EnableVertexAttribArray( 0 )
   -- each vector has three components, so the element count is #vecs/3
-  gl.DrawArrays( gl.LINES, 0, (#vecs)/3 )
+  gl.DrawArrays( gl.TRIANGLES, 0, (#vecs)/3 )
   gl.DisableVertexAttribArray( 0 )
 end
 

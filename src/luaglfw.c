@@ -457,6 +457,7 @@ static int glfw_WaitEvents( lua_State *L )
 // Key and mouse input
 //========================================================================
 
+/* GetKey( key ) -> keystate */
 static int glfw_GetKey( lua_State *L )
 {
     int n = 0;

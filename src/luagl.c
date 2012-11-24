@@ -222,6 +222,17 @@ static int gl_BindBuffer(lua_State *L)
   return 0;
 }
 
+static void table2array( lua_State *L, int stack_index, float* dst, int size )
+{
+  int i;
+  for( i=1; i<=size; i++ )
+  {
+    lua_rawgeti(L, stack_index, i);
+    dst[i-1] = lua_tonumber(L, -1);
+    lua_pop(L, 1);
+  }
+}
+
 /*BufferData (type, len, data, op) -> none*/
 static int gl_BufferData(lua_State *L)
 {
@@ -243,13 +254,7 @@ static int gl_BufferData(lua_State *L)
     // read the table (as an array) values by index
     float values[size];
     
-    int i;
-    for( i=1; i<=size; i++ )
-    {
-      lua_rawgeti(L, 3, i);
-      values[i-1] = lua_tonumber(L, -1);
-      lua_pop(L, 1);
-    }
+    table2array( L, 3, values, size );
     
     glBufferData( luaL_checkint(L, 1), size*sizeof(lua_Number),
                   values, luaL_checkint(L, 4) );
@@ -314,6 +319,28 @@ static int gl_DeleteProgram(lua_State *L)
 {
   glDeleteProgram( luaL_checkint(L, 1) );
   return 0;
+}
+
+/*UniformMatrix4f (locationID, transpose, value) -> none*/
+static int gl_UniformMatrix4f(lua_State *L)
+{
+  luaL_checktype(L, 3, LUA_TTABLE);
+  
+  float values[16]; // 4x4 matrix
+  
+  table2array(L, 3, values, 16);
+  
+  glUniformMatrix4fv( luaL_checkint(L, 1), 1, lua_toboolean(L, 2), values );
+  
+  return 0;
+}
+
+/* GetUniformLocation( programID, name ) -> locationID */
+static int gl_GetUniformLocation(lua_State *L)
+{
+  int locID = glGetUniformLocation( luaL_checkint(L,1), luaL_checkstring(L,2) );
+  lua_pushnumber(L, locID);
+  return 1;
 }
 
 
@@ -395,6 +422,8 @@ static const luaL_Reg gllib[] = {
     // shader
     { "UseProgram", gl_UseProgram },
     { "DeleteProgram", gl_DeleteProgram },
+    { "UniformMatrix4f", gl_UniformMatrix4f },
+    { "GetUniformLocation", gl_GetUniformLocation },
     
     // helper functions
     { "LoadShader", gl_LoadShader },

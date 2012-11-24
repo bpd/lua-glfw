@@ -1,4 +1,55 @@
 
+function glmIdentity()
+  return {
+    1, 0, 0, 0,
+    0, 1, 0, 0,
+    0, 0, 1, 0,
+    0, 0, 0, 1 }
+end
+
+function glmRotateX( degree )
+  return {
+    1, 0,                0,                 0,
+    0, math.cos(degree), -math.sin(degree), 0,
+    0, math.sin(degree), math.cos(degree),  0,
+    0, 0,                0,                 1 }
+end
+
+function glmRotateY( degree )
+  return {
+		math.cos(degree),  0,   math.sin(degree),  0,
+    0,                 1,   0,                 0,
+    -math.sin(degree), 0,   math.cos(degree),  0,
+    0,                 0,   0,                 1 }
+end
+    
+
+function glmMulMatrix( m1, m2 )
+  dst = {}
+  dst[1] = (m1[1] * m2[1]) + (m1[2] * m2[5]) + (m1[3] * m2[9]) + (m1[4] * m2[13])
+	dst[2] = (m1[1] * m2[2]) + (m1[2] * m2[6]) + (m1[3] * m2[10]) + (m1[4] * m2[14])
+	dst[3] = (m1[1] * m2[3]) + (m1[2] * m2[7]) + (m1[3] * m2[11]) + (m1[4] * m2[15])
+	dst[4] = (m1[1] * m2[4]) + (m1[2] * m2[8]) + (m1[3] * m2[12]) + (m1[4] * m2[16])
+	
+	dst[5] = (m1[5] * m2[1]) + (m1[6] * m2[5]) + (m1[7] * m2[9]) + (m1[8] * m2[13])
+	dst[6] = (m1[5] * m2[2]) + (m1[6] * m2[6]) + (m1[7] * m2[10]) + (m1[8] * m2[14])
+	dst[7] = (m1[5] * m2[3]) + (m1[6] * m2[7]) + (m1[7] * m2[11]) + (m1[8] * m2[15])
+	dst[8] = (m1[5] * m2[4]) + (m1[6] * m2[8]) + (m1[7] * m2[12]) + (m1[8] * m2[16])
+	
+	dst[9] = (m1[9] * m2[1]) + (m1[10] * m2[5]) + (m1[11] * m2[9]) + (m1[12] * m2[13])
+	dst[10] = (m1[9] * m2[2]) + (m1[10] * m2[6]) + (m1[11] * m2[10]) + (m1[12] * m2[14])
+	dst[11] = (m1[9] * m2[3]) + (m1[10] * m2[7]) + (m1[11] * m2[11]) + (m1[12] * m2[15])
+	dst[12] = (m1[9] * m2[4]) + (m1[10] * m2[8]) + (m1[11] * m2[12]) + (m1[12] * m2[16])
+	
+	dst[13] = (m1[13] * m2[1]) + (m1[14] * m2[5]) + (m1[15] * m2[9]) + (m1[16] * m2[13])
+	dst[14] = (m1[13] * m2[2]) + (m1[14] * m2[6]) + (m1[15] * m2[10]) + (m1[16] * m2[14])
+	dst[15] = (m1[13] * m2[3]) + (m1[14] * m2[7]) + (m1[15] * m2[11]) + (m1[16] * m2[15])
+	dst[16] = (m1[13] * m2[4]) + (m1[14] * m2[8]) + (m1[15] * m2[12]) + (m1[16] * m2[16])
+
+  return dst
+end
+
+
 
 glfw.Init()
 
@@ -94,10 +145,12 @@ programID = gl.LoadShader(
   #version 330 core
 
   layout(location = 0) in vec3 vertex;
+  
+  uniform mat4 MVP;
 
   void main()
   {
-    gl_Position = vec4(vertex,1);
+    gl_Position = MVP * vec4(vertex,1);
   }
 ]],
 [[
@@ -114,10 +167,29 @@ programID = gl.LoadShader(
 
 print("programID: ", programID)
 
+mvpID = gl.GetUniformLocation(programID, "MVP")
+print("mvpID: ", mvpID)
 
-running = true
-while running do
+mvp = glmIdentity()
 
+
+function processEvents()
+
+  if glfw.GetKey( glfw.KEY_LEFT ) == glfw.PRESS then
+    mvp = glmMulMatrix( mvp, glmRotateY( -0.05 ) )
+  elseif glfw.GetKey( glfw.KEY_RIGHT ) == glfw.PRESS then
+    mvp = glmMulMatrix( mvp, glmRotateY( 0.05 ) )
+  end
+  
+  if glfw.GetKey( glfw.KEY_UP ) == glfw.PRESS then
+    mvp = glmMulMatrix( mvp, glmRotateX( -0.05 ) )
+  elseif glfw.GetKey( glfw.KEY_DOWN ) == glfw.PRESS then
+    mvp = glmMulMatrix( mvp, glmRotateX( 0.05 ) )
+  end
+
+end
+
+function render()
   gl.Enable( gl.DEPTH_TEST )
   gl.DepthFunc( gl.LESS )
 		
@@ -127,11 +199,22 @@ while running do
   
   gl.UseProgram( programID )
   
+  gl.UniformMatrix4f( mvpID, false, mvp )
+  
   gl.BindVertexArray( vertexArrayID )
   gl.EnableVertexAttribArray( 0 )
   -- each vector has three components, so the element count is #vecs/3
   gl.DrawArrays( gl.LINES, 0, (#vecs)/3 )
   gl.DisableVertexAttribArray( 0 )
+end
+
+
+running = true
+while running do
+
+  processEvents()
+  
+  render()
   
   glfw.SwapBuffers()
   
